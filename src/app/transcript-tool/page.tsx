@@ -23,11 +23,11 @@ export default function TranscriptToolPage() {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     if (selectedFile) {
-      // Check file type (text based for simplicity with current Genkit setup)
+      // Check file type
       if (!selectedFile.type.startsWith('text/') && selectedFile.type !== 'application/pdf') {
          toast({
             title: "Invalid File Type",
-            description: "Please upload a text file (.txt) or PDF (.pdf). The AI works best with text-based transcripts.",
+            description: "Please upload a supported file type (e.g., TXT, PDF).",
             variant: "destructive",
           });
         setFile(null);
@@ -84,15 +84,20 @@ export default function TranscriptToolPage() {
     const studentForEnrollment = {
       studentIdExt: extractedData.studentId,
       fullName: extractedData.studentName,
-      email: "", // AI doesn't extract email, user needs to fill
+      email: "", // AI doesn't typically extract email, user needs to fill
       enrollmentDate: format(new Date(), "yyyy-MM-dd"), // Default to today
       courses: extractedData.courses.map(c => ({
         name: c.name,
         grade: c.grade,
-        credits: String(c.credits)
+        credits: String(c.credits) // Ensure credits is string for the form
       })),
+      // Ensure all fields expected by StudentFormData are present if needed
+      phone: "", 
+      address: "",
+      profilePictureUrl: "",
+      academicNotes: "",
     };
-    // Store in localStorage to prefill on enroll page, or pass via query params (localStorage is cleaner for larger data)
+    // Store in localStorage to prefill on enroll page
     localStorage.setItem('transcriptEnrollData', JSON.stringify(studentForEnrollment));
     router.push('/enroll?fromTranscript=true');
   };
@@ -110,7 +115,7 @@ export default function TranscriptToolPage() {
           <CardHeader>
             <CardTitle>Upload Transcript</CardTitle>
             <CardDescription>
-              Select a text-based transcript file (e.g., .txt, .pdf).
+              Select a transcript file (e.g., .txt, .pdf).
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -119,7 +124,7 @@ export default function TranscriptToolPage() {
               <Input
                 id="transcriptFile"
                 type="file"
-                accept=".txt,.pdf" 
+                accept=".txt,.pdf,text/*,application/pdf" 
                 onChange={handleFileChange}
                 className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
               />
@@ -141,7 +146,7 @@ export default function TranscriptToolPage() {
         </Card>
 
         {extractedData && (
-          <Card className="md:col-span-2"> {/* Make results card span full width on larger screens if it's alone, or manage layout better */}
+          <Card className="md:col-span-2"> {/* Results card */}
             <CardHeader>
               <CardTitle>Extracted Information</CardTitle>
               <CardDescription>Verify the data extracted from the transcript.</CardDescription>
@@ -149,8 +154,8 @@ export default function TranscriptToolPage() {
             <CardContent className="space-y-4">
               <div>
                 <h4 className="font-semibold">Student Details</h4>
-                <p><strong>Name:</strong> {extractedData.studentName}</p>
-                <p><strong>ID:</strong> {extractedData.studentId}</p>
+                <p><strong>Name:</strong> {extractedData.studentName || "N/A"}</p>
+                <p><strong>ID:</strong> {extractedData.studentId || "N/A"}</p>
               </div>
               <div>
                 <h4 className="font-semibold">Courses</h4>
@@ -163,7 +168,7 @@ export default function TranscriptToolPage() {
                     ))}
                   </ul>
                 ) : (
-                  <p>No courses found.</p>
+                  <p className="text-sm text-muted-foreground">No courses found or extracted.</p>
                 )}
               </div>
             </CardContent>
@@ -184,7 +189,7 @@ export default function TranscriptToolPage() {
           <p> - Ensure the uploaded transcript is clear and machine-readable for best results.</p>
           <p> - The AI tool is designed to extract common data points. Complex or non-standard transcript formats might yield partial results.</p>
           <p> - Always review the extracted data for accuracy before using it.</p>
-          <p> - Currently, PDF and TXT files are best supported. Image-based transcripts are not supported by this flow.</p>
+          <p> - Supported file types include PDF and TXT.</p>
         </CardContent>
       </Card>
     </>

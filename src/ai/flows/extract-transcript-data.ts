@@ -8,7 +8,7 @@
  * - ExtractTranscriptDataOutput - The return type for the extractTranscriptData function.
  */
 
-import {ai} from '@/ai/genkit';
+import {ai}from '@/ai/genkit';
 import {z} from 'genkit';
 
 const ExtractTranscriptDataInputSchema = z.object({
@@ -29,9 +29,9 @@ const ExtractTranscriptDataOutputSchema = z.object({
         credits: z.number().describe('The number of credits earned for the course.'),
       })
     )
-    .describe('A list of courses extracted from the transcript.'),
-  studentId: z.string().describe('The ID of the student.'),
-  studentName: z.string().describe('The name of the student.'),
+    .describe('A list of courses extracted from the transcript. If no courses are found, return an empty array.'),
+  studentId: z.string().describe('The ID of the student. If not clearly identifiable, this can be an empty string.'),
+  studentName: z.string().describe('The name of the student. If not clearly identifiable, this can be an empty string.'),
 });
 export type ExtractTranscriptDataOutput = z.infer<typeof ExtractTranscriptDataOutputSchema>;
 
@@ -55,7 +55,9 @@ const prompt = ai.definePrompt({
 
   {{media url=transcriptDataUri}}
 
-  Ensure that the extracted data is accurate and complete.
+  Ensure that the extracted data is accurate and complete according to the requested schema.
+  If a student ID or name is not clearly found, you may return an empty string for those fields.
+  If no courses are found, return an empty list for courses.
   Return the data in JSON format.
   `,
 });
@@ -68,6 +70,8 @@ const extractTranscriptDataFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
+    // If the prompt resolves without error, Genkit has already validated the output against the schema.
+    // So, output can be safely assumed to be of ExtractTranscriptDataOutput type.
     return output!;
   }
 );
