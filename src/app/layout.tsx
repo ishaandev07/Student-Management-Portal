@@ -23,13 +23,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+  return (<html lang="en" suppressHydrationWarning><body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AppLayout>
           {children}
         </AppLayout>
-      </body>
-    </html>
-  );
+      </body></html>);
 }
